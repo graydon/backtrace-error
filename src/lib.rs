@@ -53,9 +53,8 @@
 
 #![feature(backtrace)]
 
-use std::{error::Error, backtrace::Backtrace, fmt::Display};
+use std::{error::Error, backtrace::Backtrace, fmt::{Display, Debug}};
 
-#[derive(Debug)]
 pub struct BacktraceError<E:Error> {
     pub inner: E,
     pub backtrace: Backtrace
@@ -69,6 +68,12 @@ impl<E:Error> Display for BacktraceError<E> {
     }
 }
 
+impl<E:Error> Debug for BacktraceError<E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <Self as Display>::fmt(self, f)
+    }
+}
+
 impl<E:Error + 'static> Error for BacktraceError<E> {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(&self.inner)
@@ -79,7 +84,7 @@ impl<E:Error + 'static> Error for BacktraceError<E> {
     }
 }
 
-impl<E:Error> From<E> for BacktraceError<E> {
+impl<E:Error + 'static> From<E> for BacktraceError<E> {
     fn from(inner: E) -> Self {
         let backtrace = Backtrace::capture();
         Self { inner, backtrace }
