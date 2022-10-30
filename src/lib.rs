@@ -51,8 +51,6 @@
 //!
 //! I figured maybe someone out there has the same need, so am publishing it.
 
-#![feature(backtrace)]
-
 use std::{error::Error, backtrace::Backtrace, fmt::{Display, Debug}};
 
 pub struct BacktraceError<E:Error> {
@@ -78,11 +76,19 @@ impl<E:Error + 'static> Error for BacktraceError<E> {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(&self.inner)
     }
+}
 
-    fn backtrace(&self) -> Option<&Backtrace> {
-        Some(&self.backtrace)
+// Someday we'll also support the "Provider" API, but not today
+// since it is not stable and I don't want to bother tracking
+// its stability.
+/*
+impl<E:Error + 'static> std::any::Provider for BacktraceError<E> {
+    fn provide<'a>(&'a self, demand: &mut std::any::Demand<'a>) {
+        demand.provide_ref::<Backtrace>(self.backtrace)
+        .provide_value::<Backtrace>(|| self.backtrace)
     }
 }
+*/
 
 impl<E:Error + 'static> From<E> for BacktraceError<E> {
     fn from(inner: E) -> Self {
