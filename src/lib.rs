@@ -55,7 +55,7 @@ use std::{error::Error, backtrace::Backtrace, fmt::{Display, Debug}};
 
 pub struct BacktraceError<E:Error> {
     pub inner: E,
-    pub backtrace: Backtrace
+    pub backtrace: Box<Backtrace>
 }
 
 impl<E:Error> Display for BacktraceError<E> {
@@ -92,7 +92,7 @@ impl<E:Error + 'static> std::any::Provider for BacktraceError<E> {
 
 impl<E:Error + 'static> From<E> for BacktraceError<E> {
     fn from(inner: E) -> Self {
-        let backtrace = Backtrace::capture();
+        let backtrace = Box::new(Backtrace::capture());
         Self { inner, backtrace }
     }
 }
